@@ -22,7 +22,7 @@
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-(setq doom-font (font-spec :family "Iosevka SS14" :size 18 ;; :weight 'semi-light
+(setq doom-font (font-spec :family "IosevkaTerm NFM" :size 18 ;; :weight 'semi-light
                            )
      doom-variable-pitch-font (font-spec :family "cascadia mono" :size 22))
 ;;
@@ -77,6 +77,12 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+;; (use-package! font-lock+)
+;; (add-to-list 'load-path "~/.local/share/icons-in-terminal/")
+;; (require 'icons-in-terminal)
+;; (load! "icons-in-terminal.el")
+
+
 (after! which-key
  (setq which-key-idle-delay 0.1)
  )
@@ -89,14 +95,14 @@
   (setq
    company-box-frame-behavior #'point
    company-box-icons-alist 'company-box-icons-images
-   ;; company-box-doc-delay 0.2
+   company-box-doc-delay 0.2
     ))
 
 (after! rustic
   (setq rustic-lsp-server 'rust-analyzer
         lsp-rust-analyzer-server-display-inlay-hints t)
 
-  (set-popup-rule! "^\\*cargo-run\\*" :side 'right :width .40 :modeline t)
+  (set-popup-rule! "^\\*cargo-run\\*" :side 'right :width .35 :modeline t)
 
   )
 
@@ -116,9 +122,9 @@
   (setq lsp-ui-doc-use-childframe t )
   (setq lsp-clangd-binary-path "c:/msys64/mingw64/bin/clangd.exe"
         lsp-signature-render-documentation nil
-        lsp-idle-delay 0.2
+        lsp-idle-delay 0.1
         )
-  (set-popup-rule! "^\\*compilation\\*" :side 'right :width .40 :modeline t)
+  (set-popup-rule! "^\\*compilation\\*" :side 'right :width .35 :modeline t)
 
     )
 
@@ -133,12 +139,11 @@
    ;;                  'avy-goto-line-above . '(?l ?k ?j ?h ?f ?d ?s ?a)
    ;;                  )
 
-   avy-keys '(97 115 100 102 106 107 108 59)
+   avy-keys '(?a ?s ?d ?f  ?j ?k ?l ?\;)
    ))
 
 
 
-(setq tab-width 4)
 
 
 
@@ -177,7 +182,7 @@
 
 (map!
 :desc "Jump to word timer"
-"M-SPC"
+"M-;"
 'evil-avy-goto-char-timer)
 
 
@@ -232,10 +237,268 @@
     (
      :leader
      :prefix "w"
-      :desc "Hydra resize" :n "SPC" #'hydra/window-nav/body))
+     :desc "Hydra resize" :n "SPC" #'hydra/window-nav/body))
 
 (after! company
   (setq
    company-tooltip-maximum-width 80
    company-tooltip-minimum-width 80
    ))
+
+
+
+(map! :leader
+      (:prefix ("e" . "execute")
+        :desc "C/C++"
+        "c" #'compileandrun))
+
+(defun compileandrun()
+  (interactive)
+  (let* ((src (file-name-nondirectory (buffer-file-name)))
+         (exe (file-name-sans-extension src)))
+    (compile (concat "g++ " src " -o " exe " && .\\" exe " < stdin" ))))
+
+
+(map! :leader
+      (:prefix ("e" . "execute")
+        :desc "Rust"
+        "r" #'rustandrun))
+
+
+(defun rustandrun()
+  (interactive)
+  (let* ((mode 'rustic-cargo-run-mode)
+         (src (file-name-nondirectory (buffer-file-name)))
+         (exe (file-name-sans-extension src)))
+    (compile (concat "rustc " src " -o " exe " && .\\" exe " < stdin" ))))
+
+(after! evil-escape
+  (setq evil-escape-unordered-key-sequence t)
+  )
+
+(setq-default tab-width 4)
+
+
+;; (use-package! nerd-icons
+;;   :custom
+;;   (nerd-icons-font-family "IosevkaTerm NFM")
+;;   )
+
+
+
+;; (use-package corfu
+;;   :config
+;;   (defun ++corfu-quit ()
+;;     (interactive)
+;;     (call-interactively 'corfu-quit)
+;;     (evil-normal-state +1))
+;;   (setq corfu-cycle t
+;;         corfu-auto t
+;;         corfu-auto-prefix 1
+;;         corfu-auto-delay 0.01
+;;         corfu-separator ?\s
+;;         corfu-quit-at-boundary 'separator
+;;         corfu-quit-no-match t
+;;         corfu-preview-current t
+;;         corfu-preselect-first t
+;;         corfu-on-exact-match nil
+;;         corfu-echo-documentation nil
+;;         corfu-scroll-margin 10
+;;         corfu-popupinfo-delay 0.5
+;;         corfu-min-width 80
+;;         corfu-count 13
+;;         corfu-max-width 120
+;;         corfu-popupinfo-max-height 20
+;;         corfu-popupinfo-max-width 60)
+;;   (map! :map global-map
+;;         :nvi "C-SPC" #'completion-at-point)
+;;   (map! :map corfu-map
+
+;;         :nvi "C-j" #'corfu-next
+;;         :nvi "C-k" #'corfu-previous
+;;         :nvi "C-l" #'corfu-insert
+;;         :nvi "C-;" #'corfu-insert
+;;         :nvi "<tab>" #'corfu-next
+;;         :nvi "<S-tab>" #'corfu-previous
+;;         :nvi "S-TAB"   #'corfu-previous
+;;         :nvi "<escape>" #'++corfu-quit
+;;         :nvi "ESC" #'++corfu-quit
+;;         :nvi "C-i" #'corfu-popupinfo-toggle
+;;         :nvi "C-u" #'corfu-popupinfo-scroll-up
+;;         :nvi "C-d" #'corfu-popupinfo-scroll-down)
+;;   (global-corfu-mode t)
+;;   (corfu-popupinfo-mode t)
+;;   (corfu-history-mode t)
+;;   (global-company-mode -1)
+;;   (add-hook! '(prog-mode-hook
+;;                text-mode-hook)
+;;     (unless (display-graphic-p)
+;;       (corfu-terminal-mode t)
+;;       (corfu-doc-terminal-mode t))))
+
+;; (use-package kind-icon
+;;   :after corfu
+;;   :custom
+;;   (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+;;   :config
+;;   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+
+;; See https://github.com/minad/corfu/wiki#basic-example-configuration-with-orderless
+;; (use-package orderless
+;;   :init
+;;   ;; Tune the global completion style settings to your liking!
+;;   ;; This affects the minibuffer and non-lsp completion at point.
+;;   (setq completion-styles '(orderless partial-completion basic)
+;;         completion-category-defaults nil
+;;         completion-category-overrides nil))
+
+
+
+;; (use-package lsp-mode
+;;   :custom
+;;   (lsp-completion-provider :none) ;; we use Corfu!
+;;   :init
+;;   (defun my/lsp-mode-setup-completion ()
+;;     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+;;           '(hotfuzz))) ;; Configure orderless
+;;   :hook
+;;   (lsp-completion-mode . my/lsp-mode-setup-completion))
+
+;; Add extensions
+;; (use-package cape
+;;   :init
+;;   ;; Add `completion-at-point-functions', used by `completion-at-point'.
+;;   (add-to-list 'completion-at-point-functions #'cape-file)
+;;   ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+;;   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+;;   (add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
+  ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+  ;; :config
+  ;; (setq cape-dabbrev-min-length 2
+  ;;       cape-dabbrev-check-other-buffers 'some))
+
+
+;; (use-package kind-icon
+;;   :after corfu
+  ;; :custom
+  ;; (kind-icon-use-icons t)
+  ;; (kind-icon-default-face 'corfu-default) ; Have background color be the same as `corfu' face background
+  ;; (kind-icon-blend-background nil)  ; Use midpoint color between foreground and background colors ("blended")?
+  ;; (kind-icon-blend-frac 0.08)
+  ;; ( kind-icon-mapping
+  ;;     `((array "a" :icon "code-brackets" :face font-lock-type-face)
+  ;;   (boolean "b" :icon "circle-half-full" :face font-lock-builtin-face)
+  ;;   (class "c" :icon "file-tree" :face font-lock-type-face)
+  ;;   (color "#" :icon "palette" :face success)
+  ;;   (command "cm" :icon "code-tags" :face default)
+  ;;   (constant "co" :icon "pi" :face font-lock-constant-face)
+  ;;   (constructor "cn" :icon "table-column-plus-after" :face font-lock-function-name-face)
+  ;;   ;; FIXME: remove this once eglot patch is in Emacs
+  ;;   (enummember "em" :icon "order-bool-ascending" :face font-lock-builtin-face)
+  ;;   (enum-member "em" :icon "order-bool-ascending" :face font-lock-builtin-face)
+  ;;   (enum "e" :icon "equal-box" :face font-lock-builtin-face)
+  ;;   (event "ev" :icon "flash-outline" :face font-lock-warning-face)
+  ;;   (field "fd" :icon "hexagon-multiple" :face font-lock-variable-name-face)
+  ;;   (file "f" :icon "file-document-outline" :face font-lock-string-face)
+  ;;   (folder "d" :icon "folder" :face font-lock-doc-face)
+  ;;   (interface "if" :icon "pyramid" :face font-lock-type-face)
+  ;;   (keyword "kw" :icon "key-variant" :face font-lock-keyword-face)
+  ;;   (macro "mc" :icon "lambda" :face font-lock-keyword-face)
+  ;;   (magic "ma" :icon "auto-fix" :face font-lock-builtin-face)
+  ;;   (method "m" :icon "cube-scan" :face nerd-icons-purple)
+  ;;   (function "f" :icon "cube-outline" :face nerd-icons-purple)
+  ;;   (module "{" :icon "package-variant-closed" :face font-lock-preprocessor-face)
+  ;;   (numeric "nu" :icon "numeric" :face nerd-icons-orange )
+  ;;   (operator "op" :icon "plus-minus" :face font-lock-comment-delimiter-face)
+  ;;   (param "pa" :icon "cog" :face default)
+  ;;   (property "pr" :icon "wrench" :face font-lock-variable-name-face)
+  ;;   (reference "rf" :icon "library" :face font-lock-variable-name-face)
+  ;;   (snippet "S" :icon "border-bottom-variant" :face font-lock-string-face)
+  ;;   (string "s" :icon "alphabetical-variant" :face font-lock-string-face)
+  ;;   (struct "%" :icon "format-list-text" :face font-lock-variable-name-face)
+  ;;   (text "tx" :icon "alphabet-latin" :face font-lock-doc-face)
+
+
+
+  ;;   ;; FIXME: remove this once eglot patch is in Emacs
+  ;;   (typeparameter "tp" :icon "axis-arrow" :face font-lock-type-face)
+  ;;   (type-parameter "tp" :icon "axis-arrow" :face font-lock-type-face)
+  ;;   (unit "u" :icon "ruler-square" :face font-lock-constant-face)
+  ;;   (value "v" :icon "plus-circle-outline" :face font-lock-builtin-face)
+  ;;   (variable "va" :icon "variable" :face font-lock-variable-name-face)
+  ;;   (t "." :icon "format-text" :face font-lock-warning-face)))
+
+
+  ;; NOTE 2022-02-05: `kind-icon' depends `svg-lib' which creates a cache
+  ;; directory that defaults to the `user-emacs-directory'. Here, I change that
+  ;; directory to a location appropriate to `no-littering' conventions, a
+  ;; package which moves directories of other packages to sane locations.
+  ;; (svg-lib-icons-dir (no-littering-expand-var-file-name "svg-lib/cache/")) ; Change cache dir
+  ;; :config
+  ;; (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter) ; Enable `kind-icon'
+
+  ;; Add hook to reset cache so the icon colors match my theme
+  ;; NOTE 2022-02-05: This is a hook which resets the cache whenever I switch
+  ;; the theme using my custom defined command for switching themes. If I don't
+  ;; do this, then the backgound color will remain the same, meaning it will not
+  ;; match the background color corresponding to the current theme. Important
+  ;; since I have a light theme and dark theme I switch between. This has no
+  ;; function unless you use something similar
+  ;; (add-hook 'kb/themes-hooks #'(lambda () (interactive) (kind-icon-reset-cache))))
+
+;; (use-package! hotfuzz)
+
+;; (use-package lsp-mode
+;;   :custom
+;;   (lsp-completion-provider :none) ;; we use Corfu!
+;;   :init
+;;   (defun my/lsp-mode-setup-completion ()
+;;     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+;;           '(hotfuzz))) ;; Configure flex
+;;   :hook
+;;   (lsp-completion-mode . my/lsp-mode-setup-completion))
+
+;; (setq completion-category-overrides
+;;       '((buffer (styles hotfuzz)))
+
+;;       )
+;;  (defun my/lsp-mode-setup-completion ()
+;;     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+;;           '(hotfuzz
+;;             ))) ;; Configure flex
+
+;; (add-hook!
+;; 'lsp-completion-mode   'my/lsp-mode-setup-completion
+;;  )
+
+
+;; (use-package! sideline
+;;   :hook (flycheck-mode . sideline-mode)
+;;   :init
+;;   (setq sideline-backends-right '(sideline-flycheck)))
+
+;; (use-package! sideline-flycheck :hook (flycheck-mode . sideline-flycheck-setup))
+
+
+;; (use-package! sideline)
+;; (use-package! sideline-flycheck)
+
+;; (add-hook! 'flycheck-mode 'sideline-mode)
+;; (add-hook! 'flycheck-mode 'sideline-flycheck-setup)
+;; (after! sideline-mode
+;; (setq sideline-backends-right '(sideline-flycheck))
+;;   )
+
+;; (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+
+
+;; (add-hook!
+;; 'flycheck-mode   'sideline-flycheck-setup
+;;  )
+(setq default-process-coding-system '(utf-8 . utf-8))
